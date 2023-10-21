@@ -1,0 +1,26 @@
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: create key-pair
+      amazon.aws.ec2_key:
+        name: sample
+        region: ap-south-1
+      register: new_key
+    - name: copying private-key
+      copy: 
+        content: "{{ new_key.key.private_key }}"
+        dest: ./sample.pem
+      when: new_key.changed
+    - name: start an instance with a public IP address
+      amazon.aws.ec2_instance:
+        name: "Automated EC2"
+        key_name: "sample"
+          #vpc_subnet_id: subnet-5ca1ab1e
+        instance_type: t2.micro
+        security_group: default
+          #network:
+          #assign_public_ip: true
+        image_id: ami-099b3d23e336c2e83
+        region: ap-south-1
+        tags:
+          Environment: Testing    
